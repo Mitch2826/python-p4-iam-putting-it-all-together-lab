@@ -8,10 +8,53 @@ from config import app, db, api
 from models import User, Recipe
 
 class Signup(Resource):
-    pass
+    def post(self):
+        data = request.get_json()
+        
+        username = data.get("username")
+        password = data.get("password")
+        image_url = data.get("image_url")
+        bio = data.get("bio")
+        
+        try:
+            
+            new_user = User(
+                username=username,
+                image_url=image_url,
+                bio=bio
+            )
+        
+            # set password using the password_hash setter
+            new_user.password_hash = password
+        
+        
+            db.session.add(new_user)
+            db.session.commit()
+        except ValueError as e:
+            return {"errors": str(e)}, 422
+        
+        except IntegrityError:
+            db.session.rollback()
+            return {"errors": "Username already exists."}, 422
+        
+        #Log user in by storing their id in session
+        session['user_id'] = new_user.id
+        
+        return new_user.to_dict(), 201
+        
 
 class CheckSession(Resource):
-    pass
+    def get(self):
+        user_id= session.get('user_id')
+        if not user_id:
+            return {"errors": "Unauthorized"}, 401
+        
+        user = db.session.get(User, user_id)
+        if not user:
+            #if user id in session but not found in db
+            return {"errors": "Unauthorized"}, 401
+        
+        return user.to_dict(), 200
 
 class Login(Resource):
     pass
