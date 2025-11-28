@@ -57,7 +57,17 @@ class CheckSession(Resource):
         return user.to_dict(), 200
 
 class Login(Resource):
-    pass
+    def post(self):
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
+
+        user = User.query.filter_by(username=username).first()
+        if user and user.authenticate(password):
+            session["user_id"] = user.id
+            return user.to_dict(), 200
+        else:
+            return {"errors": "Invalid username or password"}, 401
 
 class Logout(Resource):
     pass
