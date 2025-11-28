@@ -70,7 +70,14 @@ class Login(Resource):
             return {"errors": "Invalid username or password"}, 401
 
 class Logout(Resource):
-    pass
+    def delete(self):
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+            
+        session.pop('user_id', None)
+        return {}, 204
 
 class RecipeIndex(Resource):
     pass
